@@ -17,57 +17,100 @@ class VillaPeruana
         $this->sellIn = $sellIn;
     }
 
-    public static function of($name, $quality, $sellIn) {
+    public function setQuality($quality)
+    {
+        $this->quality = $quality;
+    }
+
+    public function setSellIn($sellIn)
+    {
+        $this->sellIn = $sellIn;
+    }
+
+    public static function of($name, $quality, $sellIn)
+    {
         return new static($name, $quality, $sellIn);
     }
 
     public function tick()
     {
-        if ($this->name != 'Pisco Peruano' and $this->name != 'Ticket VIP al concierto de Pick Floid') {
-            if ($this->quality > 0) {
-                if ($this->name != 'Tumi de Oro Moche') {
-                    $this->quality = $this->quality - 1;
-                }
-            }
-        } else {
-            if ($this->quality < 50) {
-                $this->quality = $this->quality + 1;
-
-                if ($this->name == 'Ticket VIP al concierto de Pick Floid') {
-                    if ($this->sellIn < 11) {
-                        if ($this->quality < 50) {
-                            $this->quality = $this->quality + 1;
-                        }
-                    }
-                    if ($this->sellIn < 6) {
-                        if ($this->quality < 50) {
-                            $this->quality = $this->quality + 1;
-                        }
-                    }
-                }
-            }
+        switch ($this->name) {
+            case "normal":
+                $this->normalTick();
+                break;
+            case "Pisco Peruano":
+                $this->piscoTick();
+                break;
+            case "Ticket VIP al concierto de Pick Floid":
+                $this->vipTick();
+                break;
+            case "Café Altocusco":
+                $this->cafeTick();
+                break;
+            case "Tumi de Oro Moche":
+            default:
+                break;
         }
+    }
 
-        if ($this->name != 'Tumi de Oro Moche') {
-            $this->sellIn = $this->sellIn - 1;
-        }
+    public function normalTick()
+    {
+        $this->removeQuality();
+        $this->removeSellIn();
 
         if ($this->sellIn < 0) {
-            if ($this->name != 'Pisco Peruano') {
-                if ($this->name != 'Ticket VIP al concierto de Pick Floid') {
-                    if ($this->quality > 0) {
-                        if ($this->name != 'Tumi de Oro Moche') {
-                            $this->quality = $this->quality - 1;
-                        }
-                    }
-                } else {
-                    $this->quality = $this->quality - $this->quality;
-                }
-            } else {
-                if ($this->quality < 50) {
-                    $this->quality = $this->quality + 1;
+            $this->removeQuality();
+        }
+    }
+    public function piscoTick()
+    {
+        $this->addQuality();
+        $this->removeSellIn();
+
+        if ($this->sellIn < 0) {
+            $this->addQuality();
+        }
+    }
+
+    public function vipTick()
+    {
+        if ($this->sellIn <= 0) {
+            $this->setQuality(0);
+        } else {
+            $this->addQuality();
+            if ($this->sellIn < 11) {
+                $this->addQuality();
+                if ($this->sellIn < 6) {
+                    $this->addQuality();
                 }
             }
         }
+
+        $this->removeSellIn();
+    }
+
+    public function cafeTick()
+    {
+        $this->removeQuality(2);
+        $this->removeSellIn();
+
+        if ($this->sellIn < 0) {
+            $this->removeQuality(2);
+        }
+    }
+
+    private function addQuality()
+    {
+        $this->setQuality($this->quality < 50 ? $this->quality + 1 : $this->quality);
+    }
+
+    private function removeQuality($fastDegrade = 1)
+    {
+        $this->setQuality($this->quality > 0 ? $this->quality - $fastDegrade : 0);
+    }
+
+    private function removeSellIn()
+    {
+        $this->setSellIn($this->sellIn - 1);
     }
 }
